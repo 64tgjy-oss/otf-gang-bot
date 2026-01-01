@@ -1,3 +1,18 @@
+// ===== Express (ضروري لـ Render) =====
+const express = require("express");
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("🤖 Bot is running!");
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 Web server running on port ${PORT}`);
+});
+
+// ===== Discord Bot =====
 const {
   Client,
   GatewayIntentBits,
@@ -26,47 +41,33 @@ client.on("messageCreate", async (message) => {
 
   if (message.content === "!attendance") {
     const embed = new EmbedBuilder()
-      .setTitle("نظام الحضور والانصراف")
-      .setDescription("اضغط الزر لتسجيل دخولك أو خروجك")
+      .setTitle("📋 تسجيل الحضور")
+      .setDescription("اضغط الزر لتسجيل حضورك")
       .setColor("#5865F2");
 
-    const button = new ButtonBuilder()
-      .setCustomId("attendance_button")
-      .setLabel("تسجيل الدخول / الخروج")
-      .setStyle(ButtonStyle.Primary);
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("attend")
+        .setLabel("✅ تسجيل حضور")
+        .setStyle(ButtonStyle.Success)
+    );
 
-    const row = new ActionRowBuilder().addComponents(button);
-
-    await message.channel.send({
-      embeds: [embed],
-      components: [row]
-    });
+    await message.channel.send({ embeds: [embed], components: [row] });
   }
 });
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
-  if (interaction.customId !== "attendance_button") return;
 
-  const userId = interaction.user.id;
-  const now = new Date().toLocaleString("ar-DZ", {
-    timeZone: "Africa/Algiers"
-  });
+  if (interaction.customId === "attend") {
+    attendance.set(interaction.user.id, true);
 
-  if (!attendance.has(userId)) {
-    attendance.set(userId, now);
     await interaction.reply({
-      content: `🟢 تم تسجيل الدخول\n🕒 ${now}`,
-      ephemeral: true
-    });
-  } else {
-    const entryTime = attendance.get(userId);
-    attendance.delete(userId);
-    await interaction.reply({
-      content: `🔴 تم تسجيل الخروج\n🟢 دخول: ${entryTime}\n🔴 خروج: ${now}`,
+      content: "✅ تم تسجيل حضورك بنجاح",
       ephemeral: true
     });
   }
 });
 
+// ===== Login =====
 client.login(process.env.TOKEN);

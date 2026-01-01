@@ -1,4 +1,4 @@
-// ===== Express (ضروري لـ Render) =====
+// ====== Express (ضروري لـ Render) ======
 const express = require("express");
 const app = express();
 
@@ -12,7 +12,7 @@ app.listen(PORT, () => {
   console.log(`🌐 Web server running on port ${PORT}`);
 });
 
-// ===== Discord Bot =====
+// ====== Discord Bot ======
 const {
   Client,
   GatewayIntentBits,
@@ -41,14 +41,14 @@ client.on("messageCreate", async (message) => {
 
   if (message.content === "!attendance") {
     const embed = new EmbedBuilder()
-      .setTitle("📋 تسجيل الحضور")
-      .setDescription("اضغط الزر لتسجيل حضورك")
+      .setTitle("📋 Attendance")
+      .setDescription("اضغط الزر باش تسجل حضورك")
       .setColor("#5865F2");
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("attend")
-        .setLabel("✅ تسجيل حضور")
+        .setLabel("✅ Present")
         .setStyle(ButtonStyle.Success)
     );
 
@@ -61,13 +61,12 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.customId === "attend") {
     attendance.set(interaction.user.id, true);
-
     await interaction.reply({
-      content: "✅ تم تسجيل حضورك بنجاح",
+      content: "✅ تم تسجيل حضورك",
       ephemeral: true
     });
   }
 });
 
-// ===== Login =====
+// 🔑 التوكن من Environment Variable
 client.login(process.env.TOKEN);

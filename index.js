@@ -1,27 +1,26 @@
-// ====== Express (ضروري لـ Render) ======
+// ===== Discord Attendance Bot =====
+
+const { 
+  Client, 
+  GatewayIntentBits, 
+  ActionRowBuilder, 
+  ButtonBuilder, 
+  ButtonStyle 
+} = require("discord.js");
+
 const express = require("express");
 const app = express();
 
-const PORT = process.env.PORT || 3000;
-
+// ===== Express (Render) =====
+const PORT = process.env.PORT || 10000;
 app.get("/", (req, res) => {
   res.send("🤖 Bot is running!");
 });
-
 app.listen(PORT, () => {
   console.log(`🌐 Web server running on port ${PORT}`);
 });
 
-// ====== Discord Bot ======
-const {
-  Client,
-  GatewayIntentBits,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder
-} = require("discord.js");
-
+// ===== Discord Client =====
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -30,43 +29,55 @@ const client = new Client({
   ]
 });
 
-const attendance = new Map();
-
+// ===== Bot Ready =====
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
+// ===== Command (!attendance) =====
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
+  if (message.content !== "!attendance") return;
 
-  if (message.content === "!attendance") {
-    const embed = new EmbedBuilder()
-      .setTitle("📋 Attendance")
-      .setDescription("اضغط الزر باش تسجل حضورك")
-      .setColor("#5865F2");
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("check_in")
+      .setLabel("تسجيل الدخول")
+      .setStyle(ButtonStyle.Success),
 
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("attend")
-        .setLabel("✅ Present")
-        .setStyle(ButtonStyle.Success)
-    );
+    new ButtonBuilder()
+      .setCustomId("check_out")
+      .setLabel("تسجيل الخروج")
+      .setStyle(ButtonStyle.Danger)
+  );
 
-    await message.channel.send({ embeds: [embed], components: [row] });
-  }
+  await message.channel.send({
+    content: "🕘 **نظام الحضور والانصراف**\nاضغط الزر لتسجيل دخولك أو خروجك",
+    components: [row],
+  });
 });
 
+// ===== Button Interaction =====
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
 
-  if (interaction.customId === "attend") {
-    attendance.set(interaction.user.id, true);
+  const user = interaction.user;
+  const time = new Date().toLocaleString("ar-LY");
+
+  if (interaction.customId === "check_in") {
     await interaction.reply({
-      content: "✅ تم تسجيل حضورك",
-      ephemeral: true
+      content: `✅ **${user.username}** سجّل دخولك\n🕒 ${time}`,
+      ephemeral: false,
+    });
+  }
+
+  if (interaction.customId === "check_out") {
+    await interaction.reply({
+      content: `🚪 **${user.username}** سجّل خروجك\n🕒 ${time}`,
+      ephemeral: false,
     });
   }
 });
 
-// 🔑 التوكن من Environment Variable
+// ===== Login =====
 client.login(process.env.TOKEN);
